@@ -1,6 +1,6 @@
 # grasshopper-mqtt
 
-**A grasshopper component that can connect to a MQTT broker**
+**A grasshopper component that can connect to a MQTT broker.**
 
 ## Developing
 
