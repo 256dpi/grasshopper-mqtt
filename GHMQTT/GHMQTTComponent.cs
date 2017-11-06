@@ -25,10 +25,8 @@ namespace GHMQTT
             // register callback
             client.MqttMsgPublishReceived += MessageReceived;
 
-            // TODO: Make id configurable.
-
             // connect to broker
-            client.Connect("grasshopper");
+            client.Connect("");
 
             // subscribe to the topic
             client.Subscribe(new string[] { "#" }, new byte[] { MqttMsgBase.QOS_LEVEL_AT_MOST_ONCE });
