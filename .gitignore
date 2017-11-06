@@ -1,0 +1,4 @@
+packages/
+*.userprefs
+GHMQTT/bin/
+GHMQTT/obj/
