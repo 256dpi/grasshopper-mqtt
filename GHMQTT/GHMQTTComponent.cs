@@ -11,7 +11,9 @@ namespace GHMQTT
     {
         private MqttClient client;
 
-        private double value = 0;
+        private Object mutex = new Object();
+        private string topic = "";
+        private string payload = "";
 
         public GHMQTTComponent() : base("MQTT", "MQTT", "Receive numbers from an MQTT topic.", "Network", "") {}
 
@@ -36,15 +38,11 @@ namespace GHMQTT
 
         void MessageReceived(object sender, MqttMsgPublishEventArgs e)
         {
-            // TODO: Parse comma seperated values and return array?
-
-            // convert bytes to text
-            string val = System.Text.Encoding.UTF8.GetString(e.Message);
-
-            // TODO: Synchronize value access.
-
-            // get value
-            value = Convert.ToDouble(val);
+            // update topic and payload
+            lock (mutex) {
+                topic = e.Topic;
+                payload = System.Text.Encoding.UTF8.GetString(e.Message);    
+            }
 
             // TODO: Run in main thread.
 
@@ -62,7 +60,8 @@ namespace GHMQTT
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             // add output parameters
-            pManager.AddNumberParameter("Value", "V", "The value", GH_ParamAccess.item);
+            pManager.AddTextParameter("Topic", "T", "The topic", GH_ParamAccess.item);
+            pManager.AddTextParameter("Payload", "P", "The payload", GH_ParamAccess.item);
         }
 
         protected override void SolveInstance(IGH_DataAccess DA)
@@ -90,7 +89,10 @@ namespace GHMQTT
             //}
 
             // set output value
-            DA.SetData(0, value);
+            lock (mutex) {
+                DA.SetData(0, topic);
+                DA.SetData(1, payload);
+            }
         }
 
         public override void RemovedFromDocument(GH_Document document)
@@ -98,7 +100,7 @@ namespace GHMQTT
             // deregister callback
             client.MqttMsgPublishReceived -= MessageReceived;
 
-            // disconenct client if existing
+            // disconenct client
             client.Disconnect();
 
             base.RemovedFromDocument(document);
