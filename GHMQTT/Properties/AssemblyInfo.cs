@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // Change them to the values specific to your project.
 
 [assembly: AssemblyTitle("GHMQTT")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("A grasshopper component that connects to a MQTT broker.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("")]
-[assembly: AssemblyCopyright("")]
+[assembly: AssemblyCopyright("© 2017 Joël Gähwiler")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

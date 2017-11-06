@@ -26,8 +26,7 @@ namespace GHMQTT
         {
             get
             {
-                //Return a short string describing the purpose of this GHA library.
-                return "";
+                return "A grasshopper component that can connect to a MQTT broker.";
             }
         }
         public override Guid Id
@@ -42,16 +41,14 @@ namespace GHMQTT
         {
             get
             {
-                //Return a string identifying you or your company.
-                return "";
+                return "Joël Gähwiler";
             }
         }
         public override string AuthorContact
         {
             get
             {
-                //Return a string representing your preferred contact details.
-                return "";
+                return "joel.gaehwiler@gmail.com";
             }
         }
     }
