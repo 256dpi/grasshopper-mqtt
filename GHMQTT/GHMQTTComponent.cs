@@ -16,7 +16,7 @@ namespace GHMQTT
         private string topic = "";
         private string payload = "";
 
-        public GHMQTTComponent() : base("MQTT", "MQTT", "Receive numbers from an MQTT topic.", "Network", "") {}
+        public GHMQTTComponent() : base("MQTT", "MQTT", "Receive data from an MQTT topic.", "Network", "MQTT") {}
 
         public override void AddedToDocument(GH_Document document)
         {
