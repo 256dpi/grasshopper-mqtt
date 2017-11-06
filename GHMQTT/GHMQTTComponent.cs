@@ -9,6 +9,7 @@ namespace GHMQTT
 {
     public class GHMQTTComponent : GH_Component
     {
+        private string lastURI = "";
         private MqttClient client;
 
         private Object mutex = new Object();
@@ -19,20 +20,6 @@ namespace GHMQTT
 
         public override void AddedToDocument(GH_Document document)
         {
-            // TODO: Make host and port configurable.
-
-            // create client instance
-            client = new MqttClient("localhost", 1884, false, null, null, MqttSslProtocols.None);
-
-            // register callback
-            client.MqttMsgPublishReceived += MessageReceived;
-
-            // connect to broker
-            client.Connect("");
-
-            // subscribe to the topic
-            client.Subscribe(new string[] { "#" }, new byte[] { MqttMsgBase.QOS_LEVEL_AT_MOST_ONCE });
-
             base.AddedToDocument(document);
         }
 
@@ -44,17 +31,15 @@ namespace GHMQTT
                 payload = System.Text.Encoding.UTF8.GetString(e.Message);    
             }
 
-            // TODO: Run in main thread.
-
             // expire solution
-            ExpireSolution(true);
+            // TODO: Run in main thread.
+            //ExpireSolution(true);
         }
 
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             // add input parameters
-            // pManager.AddTextParameter("Broker URI", "B", "Base plane for spiral", GH_ParamAccess.item, "mqtt://0.0.0.0.0:1883");
-            // pManager.AddTextParameter("MQTT Topic", "T", "The topic to receive values from.", GH_ParamAccess.item, "value");
+            pManager.AddTextParameter("Broker URI", "B", "The URI of the broker", GH_ParamAccess.item, "");
         }
 
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
@@ -66,42 +51,85 @@ namespace GHMQTT
 
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            //// prepare variables
-            //String brokerURI = "";
-            //String topic = "";
-
-            //// get data
-            //if (!DA.GetData(0, ref brokerURI)) return;
-            //if (!DA.GetData(1, ref topic)) return;
-
-            //// validate broker url
-            //if (brokerURI == "")
-            //{
-            //    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Missing Nroker URI");
-            //    return;
-            //}
-
-            //// validate topic
-            //if (topic == "")
-            //{
-            //    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Missing Topic");
-            //    return;
-            //}
-
             // set output value
-            lock (mutex) {
+            lock (mutex)
+            {
                 DA.SetData(0, topic);
                 DA.SetData(1, payload);
             }
+
+            // get data
+            String rawURI = "";
+            if (!DA.GetData(0, ref rawURI)) return;
+
+            // return if uri has not changed
+            if (lastURI == rawURI)
+            {
+                return;
+            }
+
+            // set last uri
+            lastURI = rawURI;
+
+            // otherwise prepare for connection change
+
+            // validate uri
+            if (rawURI == "")
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Missing URI");
+                return;
+            }
+
+            // parse uri
+            var uri = new Uri(rawURI);
+
+            // disconnect current client (ignoring errors)
+            if (client != null)
+            {
+                try
+                {
+                    client.Disconnect();
+                } catch {}
+
+                client = null;
+            }
+
+            // create client instance
+            client = new MqttClient(uri.Host, uri.Port, false, null, null, MqttSslProtocols.None);
+
+            // register callback
+            client.MqttMsgPublishReceived += MessageReceived;
+
+            // get username password
+            var creds = uri.UserInfo.Split(':');
+
+            // connect to broker
+            if (creds.Length == 0) {
+                client.Connect("");    
+            } else if (creds.Length == 1) {
+                client.Connect("", creds[0], "");    
+            } else if(creds.Length == 2) {
+                client.Connect("", creds[0], creds[1]);    
+            }
+
+            // default to # if path is empty
+            var path = uri.AbsolutePath;
+            if (path == "") {
+                path = "#";
+            }
+
+            // subscribe to the topic
+            client.Subscribe(new string[] { path }, new byte[] { MqttMsgBase.QOS_LEVEL_AT_MOST_ONCE });
         }
 
         public override void RemovedFromDocument(GH_Document document)
         {
-            // deregister callback
-            client.MqttMsgPublishReceived -= MessageReceived;
-
-            // disconenct client
-            client.Disconnect();
+            // disconenct client (ignoring errors)
+            if (client != null) {
+                try {
+                    client.Disconnect();    
+                } catch {}
+            }
 
             base.RemovedFromDocument(document);
         }
