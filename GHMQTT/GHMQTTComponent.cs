@@ -23,19 +23,6 @@ namespace GHMQTT
             base.AddedToDocument(document);
         }
 
-        void MessageReceived(object sender, MqttMsgPublishEventArgs e)
-        {
-            // update topic and payload
-            lock (mutex) {
-                topic = e.Topic;
-                payload = System.Text.Encoding.UTF8.GetString(e.Message);    
-            }
-
-            // expire solution
-            // TODO: Run in main thread.
-            //ExpireSolution(true);
-        }
-
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             // add input parameters
@@ -122,6 +109,20 @@ namespace GHMQTT
             client.Subscribe(new string[] { path }, new byte[] { MqttMsgBase.QOS_LEVEL_AT_MOST_ONCE });
         }
 
+        void MessageReceived(object sender, MqttMsgPublishEventArgs e)
+        {
+            // update topic and payload
+            lock (mutex)
+            {
+                topic = e.Topic;
+                payload = System.Text.Encoding.UTF8.GetString(e.Message);
+            }
+
+            // expire solution
+            // TODO: Run in main thread.
+            //ExpireSolution(true);
+        }
+
         public override void RemovedFromDocument(GH_Document document)
         {
             // disconenct client (ignoring errors)
@@ -137,16 +138,6 @@ namespace GHMQTT
         public override GH_Exposure Exposure
         {
             get { return GH_Exposure.primary; }
-        }
-
-        protected override System.Drawing.Bitmap Icon
-        {
-            get
-            {
-                // You can add image files to your project resources and access them like this:
-                //return Resources.IconForThisComponent;
-                return null;
-            }
         }
 
         public override Guid ComponentGuid
