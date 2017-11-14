@@ -92,11 +92,11 @@ namespace GHMQTT
 
             // connect to broker
             if (creds.Length == 0) {
-                client.Connect("");    
+                client.Connect("");
             } else if (creds.Length == 1) {
-                client.Connect("", creds[0], "");    
+                client.Connect("", creds[0], "");
             } else if(creds.Length == 2) {
-                client.Connect("", creds[0], creds[1]);    
+                client.Connect("", creds[0], creds[1]);
             }
 
             // default to # if path is empty
