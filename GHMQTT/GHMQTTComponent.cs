@@ -81,8 +81,14 @@ namespace GHMQTT
                 client = null;
             }
 
+            // get port
+            int port = uri.Port;
+            if (port <= 0) {
+                port = 1883;
+            }
+
             // create client instance
-            client = new MqttClient(uri.Host, uri.Port, false, null, null, MqttSslProtocols.None);
+            client = new MqttClient(uri.Host, port, false, null, null, MqttSslProtocols.None);
 
             // register callback
             client.MqttMsgPublishReceived += MessageReceived;
